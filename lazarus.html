@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lazarus Psychology Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink-light: #ffebf0;
+            --pink-medium: #f8bbd0;
+            --pink-dark: #f06292;
+            --correct: #81c784;
+            --wrong: #e57373;
+            --text: #5d4037;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--pink-light);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(240, 98, 146, 0.2);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 { color: var(--pink-dark); font-size: 1.5rem; }
+        
+        .hidden { display: none !important; }
+
+        input[type="text"] {
+            padding: 12px;
+            border: 2px solid var(--pink-medium);
+            border-radius: 10px;
+            width: 80%;
+            margin-bottom: 1rem;
+            outline: none;
+        }
+
+        button {
+            background-color: var(--pink-dark);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        button:hover { transform: scale(1.05); }
+
+        .timer {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--pink-dark);
+            margin: 10px 0;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 150px;
+            background: var(--pink-light);
+            border-radius: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .options-container {
+            display: grid;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .option {
+            padding: 12px;
+            border: 2px solid var(--pink-medium);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .correct { background-color: var(--correct) !important; color: white; border-color: #66bb6a; }
+        .wrong { background-color: var(--wrong) !important; color: white; border-color: #ef5350; }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff3e0;
+            border-left: 5px solid #ffb74d;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border-bottom: 1px solid var(--pink-medium); }
+    </style>
+</head>
+<body>
+
+<div class="container" id="start-screen">
+    <h1>🧠 Thử Thách Lazarus 🌸</h1>
+    <p>Hãy điền tên để bắt đầu hành trình khám phá tâm lý học!</p>
+    <input type="text" id="username" placeholder="Tên của bạn...">
+    <br>
+    <button onclick="startGame()">Bắt đầu chơi</button>
+</div>
+
+<div class="container hidden" id="quiz-screen">
+    <div class="timer">Thời gian: <span id="time-left">20</span>s</div>
+    <div id="question-info" style="margin-bottom: 10px; font-weight: bold;">Câu hỏi 1/15</div>
+    <div class="image-placeholder" id="q-image">💭</div>
+    <div id="question-text" style="font-weight: 600; margin-bottom: 15px;">Câu hỏi sẽ hiện ở đây?</div>
+    <div class="options-container" id="options"></div>
+    <div id="explanation-box" class="explanation hidden"></div>
+    <button id="next-btn" class="hidden" onclick="nextQuestion()">Tiếp theo ➔</button>
+</div>
+
+<div class="container hidden" id="result-screen">
+    <h1>Kết quả 🏆</h1>
+    <p id="score-text"></p>
+    <h3>Bảng Xếp Hạng</h3>
+    <table id="leaderboard">
+        <thead>
+            <tr><th>Hạng</th><th>Tên</th><th>Điểm</th></tr>
+        </thead>
+        <tbody id="leaderboard-body"></tbody>
+    </table>
+    <br>
+    <button onclick="location.reload()">Chơi lại</button>
+</div>
+
+<script>
+    const questions = [
+        { q: "Theo lý thuyết đánh giá nhận thức của Richard Lazarus, cảm xúc của con người bắt nguồn từ đâu?", options: ["Trực tiếp từ các sự kiện và tác nhân kích thích.", "Từ những thay đổi sinh lý tự động của cơ thể.", "Từ sự diễn giải và đánh giá nhận thức về ý nghĩa sự kiện.", "Từ những phản xạ vô điều kiện."], correct: 2, icon: "🧠", exp: "Cốt lõi của lý thuyết Lazarus là cảm xúc không tự sinh ra từ sự kiện khách quan, mà từ cách chúng ta đánh giá sự kiện đó." },
+        { q: "Lazarus lập luận thế nào về mối quan hệ giữa suy nghĩ và cảm xúc?", options: ["Cảm xúc luôn xuất hiện trước.", "Suy nghĩ là điều kiện tiên quyết của cảm xúc.", "Chúng là hai quá trình độc lập.", "Cảm xúc là phản ứng thụ động."], correct: 1, icon: "🔗", exp: "Ông lập luận rằng nhận thức và sự đánh giá là điều kiện bắt buộc phải có để khởi phát bất kỳ cảm xúc nào." },
+        { q: "Mục đích chính của 'đánh giá sơ cấp' (primary appraisal) là gì?", options: ["Xác định kỹ năng ứng phó.", "Kiểm soát nhịp tim.", "Xác định sự kiện có quan trọng/tác động đến lợi ích không.", "Thay đổi góc nhìn tiêu cực."], correct: 2, icon: "🔍", exp: "Đánh giá sơ cấp trả lời cho câu hỏi: 'Chuyện này có ảnh hưởng gì đến tôi không?'." },
+        { q: "Sự kiện KHÔNG thường được phân loại vào nhóm nào trong đánh giá sơ cấp?", options: ["Mối đe dọa", "Thử thách", "Nguồn lực ứng phó", "Vô hại"], correct: 2, icon: "🚫", exp: "Việc xem xét các 'nguồn lực ứng phó' thuộc về đánh giá thứ cấp." },
+        { q: "Câu hỏi trung tâm của 'đánh giá thứ cấp' (secondary appraisal) là gì?", options: ["Tại sao họ làm vậy?", "Đây có phải đe dọa không?", "Tôi có đủ nguồn lực để đối phó không?", "Làm sao để quên nó?"], correct: 2, icon: "🛠️", exp: "Đánh giá thứ cấp phân tích khả năng xử lý hoặc vượt qua tình huống của cá nhân." },
+        { q: "Tính chất 'liên tục và linh hoạt' thể hiện qua khái niệm nào?", options: ["Phản xạ có điều kiện", "Tái đánh giá (Reappraisal)", "Cố định nhận thức", "Kiệt quệ cảm xúc"], correct: 1, icon: "🔄", exp: "Tái đánh giá cho phép cập nhật diễn giải khi có thông tin mới." },
+        { q: "Tại sao hai người nhận cùng lời phê bình nhưng cảm xúc khác nhau?", options: ["Do sự đánh giá nhận thức khác nhau.", "Do cấu trúc não bộ khác nhau.", "Do một người không hiểu ý.", "Do lời phê bình tự thân nó khác."], correct: 0, icon: "👥", exp: "Sự khác biệt đến từ lăng kính chủ quan: Một người coi là thử thách, một người coi là đe dọa." },
+        { q: "Yếu tố nào định hình quá trình đánh giá cá nhân?", options: ["Quy tắc logic phổ quát.", "Yếu tố môi trường ngẫu nhiên.", "Tính cách, kinh nghiệm và mục tiêu cá nhân.", "Phản xạ có điều kiện."], correct: 2, icon: "🎭", exp: "Những yếu tố này hoạt động như một hệ quy chiếu để giải mã thế giới." },
+        { q: "Đánh giá nhận thức luôn đòi hỏi suy nghĩ chậm rãi và có ý thức?", options: ["Đúng, vì nó là nhận thức.", "Đúng, vì cần sự tập trung.", "Sai, nó thường xảy ra cực nhanh và có thể vô thức.", "Sai, nó là phản xạ tủy sống."], correct: 2, icon: "⚡", exp: "Lazarus chỉ ra các đánh giá thường tự động và diễn ra rất nhanh." },
+        { q: "Mối liên hệ giữa 'giá trị cá nhân' và cảm xúc là gì?", options: ["Giá trị càng cao, cảm xúc càng mạnh.", "Sự kiện không liên quan gây cảm xúc mạnh hơn.", "Giá trị chỉ ảnh hưởng hành động.", "Giá trị làm giảm cảm xúc tiêu cực."], correct: 0, icon: "💎", exp: "Giá trị cá nhân làm tăng 'trọng lượng' của sự kiện trong đánh giá sơ cấp." },
+        { q: "Sinh viên coi thuyết trình là cơ hội và tin mình đủ kỹ năng sẽ cảm thấy?", options: ["Hoảng loạn.", "Phấn khích và hào hứng.", "Thờ ơ.", "Cam chịu."], correct: 1, icon: "🎤", exp: "Thử thách + Đủ nguồn lực = Động lực tích cực." },
+        { q: "Stress và lo âu xuất hiện khi nào?", options: ["Vô hại + Có nguồn lực.", "Đe dọa + Không đủ nguồn lực.", "Thử thách + Dư nguồn lực.", "Bỏ qua đánh giá sơ cấp."], correct: 1, icon: "⚠️", exp: "Sự chênh lệch giữa nguy hiểm và khả năng ứng phó tạo ra stress." },
+        { q: "Lazarus dịch chuyển góc nhìn cảm xúc sang hướng nào?", options: ["Quá trình kiến tạo ý nghĩa chủ động.", "Ảo giác hóa chất.", "Sự phục tùng bản năng.", "Sai lệch cần loại bỏ."], correct: 0, icon: "🏗️", exp: "Ông chứng minh tâm trí chủ động kiến tạo ý nghĩa trải nghiệm." },
+        { q: "Điểm khác biệt của Lazarus so với thuyết James-Lange?", options: ["Phủ nhận phản ứng sinh lý.", "Thay đổi thể chất có trước.", "Nhấn mạnh sự diễn giải ý nghĩa của tâm trí.", "Chỉ áp dụng cho động vật."], correct: 2, icon: "🆚", exp: "Lazarus khẳng định sự đánh giá đi trước và quyết định cảm xúc." },
+        { q: "Mối quan hệ động giữa suy nghĩ và cảm xúc là?", options: ["Đường một chiều.", "Ảnh hưởng qua lại liên tục.", "Song song không giao thoa.", "Cảm xúc luôn át chế lý trí."], correct: 1, icon: "♾️", exp: "Nhận thức định hình cảm nhận, và cảm xúc lại điều chỉnh các suy nghĩ tiếp theo." }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let timer;
+    let timeLeft = 20;
+    let playerName = "";
+
+    function startGame() {
+        playerName = document.getElementById('username').value.trim();
+        if (!playerName) return alert("Vui lòng nhập tên!");
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = questions[currentIdx];
+        document.getElementById('question-info').innerText = `Câu hỏi ${currentIdx + 1}/15`;
+        document.getElementById('q-image').innerText = q.icon;
+        document.getElementById('question-text').innerText = q.q;
+        document.getElementById('explanation-box').classList.add('hidden');
+        document.getElementById('next-btn').classList.add('hidden');
+        
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = "";
+        q.options.forEach((opt, i) => {
+            const div = document.createElement('div');
+            div.className = 'option';
+            div.innerText = opt;
+            div.onclick = () => selectOption(i);
+            optionsDiv.appendChild(div);
+        });
+
+        timeLeft = 20;
+        document.getElementById('time-left').innerText = timeLeft;
+        timer = setInterval(() => {
+            timeLeft--;
+            document.getElementById('time-left').innerText = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                selectOption(-1); // Tự động chọn sai khi hết giờ
+            }
+        }, 1000);
+    }
+
+    function selectOption(idx) {
+        clearInterval(timer);
+        const q = questions[currentIdx];
+        const options = document.getElementsByClassName('option');
+        
+        // Vô hiệu hóa click
+        for(let opt of options) opt.style.pointerEvents = "none";
+
+        if (idx === q.correct) {
+            options[idx].classList.add('correct');
+            score += 10;
+        } else {
+            if(idx !== -1) options[idx].classList.add('wrong');
+            options[q.correct].classList.add('correct');
+        }
+
+        const expBox = document.getElementById('explanation-box');
+        expBox.innerText = "Giải thích: " + q.exp;
+        expBox.classList.remove('hidden');
+        document.getElementById('next-btn').classList.remove('hidden');
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < questions.length) {
+            showQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('score-text').innerText = `${playerName}, bạn đạt được ${score}/150 điểm!`;
+        
+        // Lưu và hiển thị bảng xếp hạng (Local Storage)
+        let board = JSON.parse(localStorage.getItem('quizBoard') || "[]");
+        board.push({name: playerName, score: score});
+        board.sort((a, b) => b.score - a.score);
+        board = board.slice(0, 5); // Lấy top 5
+        localStorage.setItem('quizBoard', JSON.stringify(board));
+
+        const tbody = document.getElementById('leaderboard-body');
+        tbody.innerHTML = board.map((entry, i) => 
+            `<tr><td>${i+1}</td><td>${entry.name}</td><td>${entry.score}</td></tr>`
+        ).join('');
+    }
+</script>
+
+</body>
+</html>
