@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lazarus Psychology Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+--pink-light: #ffebf0;
+--pink-medium: #f8bbd0;
+--pink-dark: #f06292;
+--correct: #81c784;
+--wrong: #e57373;
+--text: #5d4037;
+}
+
+body {
+font-family: 'Quicksand', sans-serif;
+background-color: var(--pink-light);
+display: flex;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+margin: 0;
+}
+
+.container {
+position: relative;
+background: white;
+padding: 2rem;
+border-radius: 25px;
+box-shadow: 0 10px 25px rgba(240, 98, 146, 0.2);
+width: 90%;
+max-width: 600px;
+text-align: center;
+}
+
+.hidden { display: none !important; }
+
+button {
+background-color: var(--pink-dark);
+color: white;
+border: none;
+padding: 12px 25px;
+border-radius: 10px;
+cursor: pointer;
+font-weight: bold;
+}
+
+.options-container {
+display: grid;
+gap: 10px;
+margin: 20px 0;
+}
+
+.option {
+padding: 12px;
+border: 2px solid var(--pink-medium);
+border-radius: 12px;
+cursor: pointer;
+}
+
+.correct { background: var(--correct); color: white; }
+.wrong { background: var(--wrong); color: white; }
+
+/* 🎯 Đồng hồ cute */
+.cute-timer {
+position: absolute;
+top: 10px;
+right: 10px;
+width: 80px;
+height: 80px;
+}
+
+.cute-timer svg {
+transform: rotate(-90deg);
+}
+
+.timer-text {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+font-weight: bold;
+color: #f06292;
+font-size: 18px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container" id="start-screen">
+<h1>🧠 Thử Thách Lazarus 🌸</h1>
+<input type="text" id="username" placeholder="Tên của bạn...">
+<br><br>
+<button onclick="startGame()">Bắt đầu chơi</button>
+</div>
+
+<div class="container hidden" id="quiz-screen">
+
+<!-- 🎯 Đồng hồ -->
+<div class="cute-timer">
+<svg width="80" height="80">
+<circle cx="40" cy="40" r="35" stroke="#f8bbd0" stroke-width="6" fill="none"/>
+<circle id="ring" cx="40" cy="40" r="35"
+stroke="#f06292" stroke-width="6" fill="none"
+stroke-dasharray="220" stroke-dashoffset="0"
+stroke-linecap="round"/>
+</svg>
+<div class="timer-text" id="time-left">15</div>
+</div>
+
+<div id="question-info"></div>
+<div id="question-text"></div>
+<div id="options" class="options-container"></div>
+<button id="next-btn" class="hidden" onclick="nextQuestion()">Tiếp theo</button>
+
+</div>
+
+<div class="container hidden" id="result-screen">
+<h1>Kết quả</h1>
+<p id="score-text"></p>
+<button onclick="location.reload()">Chơi lại</button>
+</div>
+
+<script>
+const questions = [
+{ q: "Cảm xúc bắt nguồn từ đâu?", options: ["Sự kiện", "Sinh lý", "Đánh giá nhận thức", "Phản xạ"], correct: 2 },
+{ q: "Suy nghĩ và cảm xúc?", options: ["Độc lập", "Suy nghĩ trước", "Cảm xúc trước", "Ngẫu nhiên"], correct: 1 }
+];
+
+let current = 0;
+let score = 0;
+let timeLeft = 15;
+let timer;
+
+function startGame(){
+document.getElementById("start-screen").classList.add("hidden");
+document.getElementById("quiz-screen").classList.remove("hidden");
+showQuestion();
+}
+
+function showQuestion(){
+let q = questions[current];
+document.getElementById("question-text").innerText = q.q;
+
+let optDiv = document.getElementById("options");
+optDiv.innerHTML = "";
+
+q.options.forEach((o,i)=>{
+let d = document.createElement("div");
+d.className="option";
+d.innerText=o;
+d.onclick=()=>select(i);
+optDiv.appendChild(d);
+});
+
+startTimer();
+}
+
+function startTimer(){
+clearInterval(timer);
+timeLeft = 15;
+
+let ring = document.getElementById("ring");
+let total = 220;
+
+timer = setInterval(()=>{
+timeLeft--;
+document.getElementById("time-left").innerText = timeLeft;
+
+let offset = total - (timeLeft/15)*total;
+ring.style.strokeDashoffset = offset;
+
+if(timeLeft<=0){
+clearInterval(timer);
+select(-1);
+}
+},1000);
+}
+
+function select(i){
+clearInterval(timer);
+let q = questions[current];
+let ops = document.getElementsByClassName("option");
+
+for(let o of ops) o.style.pointerEvents="none";
+
+if(i===q.correct){
+ops[i].classList.add("correct");
+score+=10;
+}else{
+if(i>=0) ops[i].classList.add("wrong");
+ops[q.correct].classList.add("correct");
+}
+
+document.getElementById("next-btn").classList.remove("hidden");
+}
+
+function nextQuestion(){
+current++;
+if(current<questions.length){
+showQuestion();
+}else{
+showResult();
+}
+}
+
+function showResult(){
+document.getElementById("quiz-screen").classList.add("hidden");
+document.getElementById("result-screen").classList.remove("hidden");
+document.getElementById("score-text").innerText="Điểm: "+score;
+}
+</script>
+
+</body>
+</html>
